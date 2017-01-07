@@ -7,6 +7,7 @@ class ResponseBuilder {
     protected $result;  //当发生错误时,一定不返回这个key
     protected $id = 0;
     protected $error;
+
     protected $isError = false;
 
 
@@ -21,7 +22,14 @@ class ResponseBuilder {
         } else {
             $res = $this->buildSuccess();
         }
-        return json_encode($res);
+        $options = 0;
+        if (defined('JSON_UNESCAPED_SLASHES')) {
+            $options |= JSON_UNESCAPED_SLASHES;
+        }
+        if (defined('JSON_UNESCAPED_UNICODE')) {
+            $options |= JSON_UNESCAPED_UNICODE;
+        }
+        return json_encode($res, $options);
     }
 
 
@@ -38,7 +46,7 @@ class ResponseBuilder {
     protected function buildError() {
         $response = [
             'jsonrpc' => $this->jsonrpc,
-            'error'=>$this->result,
+            'error'=>$this->error,
             'id'=>$this->id,
         ];
         return $response;
@@ -81,6 +89,9 @@ class ResponseBuilder {
      */
     public function setError($error)
     {
+        if($error instanceof Error) {
+            $error = $error->toArray();
+        }
         $this->error = $error;
         return $this;
     }
@@ -130,27 +141,31 @@ class ResponseBuilder {
     /**
      * @return boolean
      */
-    public function isIsError()
+    public function getIsError()
     {
         return $this->isError;
     }
 
+    /**
+     * @param $errorData = ['code'=>'', 'message'=>'', 'data'=>''] or 'code'
+     * @return static
+     */
     public static function error($errorData)
     {
-        $errorObj = Error::create()->getRpcError();
+        $errorObj = Error::create();
 
         if (is_array($errorData)) {
-            $errorObj->code = $errorData['code'];
+            $errorObj->setCode($errorData['code']);
 
             if (array_key_exists('message', $errorData)) {
-                $errorObj->message = $errorData['message'];
+                $errorObj->setMessage($errorData['message']);
             }
 
             if (array_key_exists('data', $errorData)) {
-                $errorObj->data = $errorData['data'];
+                $errorObj->setData( $errorData['data']);
             }
         } else {
-            $errorObj->code = $errorData;
+            $errorObj->setCode($errorData);
         }
         return $errorObj;
 

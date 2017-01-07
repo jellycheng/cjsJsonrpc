@@ -3,10 +3,16 @@ namespace CjsJsonrpc\Core;
 
 class RequestBuilder {
 
-    protected $jsonrpc = '2.0';
-    protected $method = '';
-    protected $params = '';
-    protected $id = 0;
+    protected $requestRpcObj;
+
+    public function __construct()
+    {
+        $this->requestRpcObj = new \stdClass();
+        $this->requestRpcObj->id = null;
+        $this->requestRpcObj->jsonrpc = '2.0';
+        $this->requestRpcObj->method = '';
+        //$this->requestRpcObj->params = '';
+    }
 
     /**
      * @param string $jsonrpc
@@ -14,7 +20,7 @@ class RequestBuilder {
      */
     public function setJsonrpc($jsonrpc)
     {
-        $this->jsonrpc = $jsonrpc;
+        $this->requestRpcObj->jsonrpc = $jsonrpc;
         return $this;
     }
 
@@ -24,7 +30,7 @@ class RequestBuilder {
      */
     public function setMethod($method)
     {
-        $this->method = $method;
+        $this->requestRpcObj->method = $method;
         return $this;
     }
 
@@ -34,7 +40,7 @@ class RequestBuilder {
      */
     public function setParams($params)
     {
-        $this->params = $params;
+        $this->requestRpcObj->params = $params;
         return $this;
     }
 
@@ -44,7 +50,7 @@ class RequestBuilder {
      */
     public function setId($id)
     {
-        $this->id = $id;
+        $this->requestRpcObj->id = $id;
         return $this;
     }
 
@@ -53,7 +59,7 @@ class RequestBuilder {
      */
     public function getJsonrpc()
     {
-        return $this->jsonrpc;
+        return $this->requestRpcObj->jsonrpc;
     }
 
     /**
@@ -61,7 +67,7 @@ class RequestBuilder {
      */
     public function getMethod()
     {
-        return $this->method;
+        return $this->requestRpcObj->method;
     }
 
     /**
@@ -69,7 +75,7 @@ class RequestBuilder {
      */
     public function getParams()
     {
-        return $this->params;
+        return $this->requestRpcObj->params;
     }
 
     /**
@@ -77,7 +83,7 @@ class RequestBuilder {
      */
     public function getId()
     {
-        return $this->id;
+        return $this->requestRpcObj->id;
     }
 
     public static function create()
@@ -85,6 +91,9 @@ class RequestBuilder {
         return new static();
     }
 
+    public function getRequestRpcObj() {
+        return $this->requestRpcObj;
+    }
 
     public function toString() {
         $options = 0;
@@ -94,23 +103,29 @@ class RequestBuilder {
         if (defined('JSON_UNESCAPED_UNICODE')) {
             $options |= JSON_UNESCAPED_UNICODE;
         }
-        $jsonRpc = array(
-                        'jsonrpc' => '2.0',
-                        'method' => $this->method,
-                        'params' => $this->params,
-                        'id' => $this->id,
+        $jsonRpcData = array(
+                        'jsonrpc' => $this->requestRpcObj->jsonrpc,
+                        'method' => $this->requestRpcObj->method,
+                        //'params' => $this->requestRpcObj->params,
+                        'id' => $this->requestRpcObj->id,
                     );
-        return json_encode($jsonRpc, $options);
+        if(property_exists($this->requestRpcObj, 'params')) {
+            $jsonRpcData['params'] = $this->requestRpcObj->params;
+        }
+        return json_encode($jsonRpcData, $options);
     }
 
     public function toArray() {
-        $jsonRpc = array(
-            'jsonrpc' => '2.0',
-            'method' => $this->method,
-            'params' => $this->params,
-            'id' => $this->id,
+        $jsonRpcData = array(
+            'jsonrpc' => $this->requestRpcObj->jsonrpc,
+            'method' => $this->requestRpcObj->method,
+            //'params' => $this->requestRpcObj->params,
+            'id' => $this->requestRpcObj->id,
         );
-        return $jsonRpc;
+        if(property_exists($this->requestRpcObj, 'params')) {
+            $jsonRpcData['params'] = $this->requestRpcObj->params;
+        }
+        return $jsonRpcData;
     }
 
 

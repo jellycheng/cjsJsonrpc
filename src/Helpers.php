@@ -30,7 +30,7 @@ function rpcCall($method, $params, &$err = null)
  * @param null $err
  * @return mixed
  */
-function batch_call($calls, &$err = null)
+function batchCall($calls, &$err = null)
 {
     return Service::batchCall($calls, $err);
 }

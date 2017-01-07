@@ -1,5 +1,5 @@
 <?php
-namespace CjsJsonrpc\Core;
+namespace CjsJsonrpc\Util;
 
 trait Explorable
 {
