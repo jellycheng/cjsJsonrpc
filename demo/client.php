@@ -35,7 +35,7 @@ ClientService::importConf(
 
 
 $userModule = ClientService::get('news')->module('User\\UserLogin');//模块
-$rep = $userModule->createLoginLog($uid, $type, $ext);  //记录用户登录日志
+$rep = $userModule->createLoginLog("1234", 1, ['op'=>'add', 'content'=>'新增角色']);  //记录用户登录日志
 if (!$userModule->errno()) {//没有发生错误
     echo 'rep : ';
     if (is_array($rep)) {

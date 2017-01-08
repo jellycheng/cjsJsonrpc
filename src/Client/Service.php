@@ -78,8 +78,9 @@ class Service {
      */
     public static function batchCall($param, &$err=null)
     {
+        $ret = null;
 
-
+        return $ret;
     }
 
     /**
@@ -89,7 +90,11 @@ class Service {
      */
     public static function concurrentRequest($param, &$err=null)
     {
+        $ret = null;
 
+
+
+        return $ret;
     }
 
 
