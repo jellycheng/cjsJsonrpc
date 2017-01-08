@@ -2,8 +2,9 @@
 namespace CjsJsonrpc\Server;
 use CjsJsonrpc\Core\ResponseBuilder as Response;
 use CjsJsonrpc\Core\Status;
+use CjsJsonrpc\Util\Errorable;
 
-class Service {
+class Service extends Errorable {
 
     private $lookup = null;
 
@@ -16,7 +17,8 @@ class Service {
     }
 
 
-    public function send($msg) {
+    public function send($msg, $isExit = true) {
+        $this->clearErr();
         $reply = null;
         $req = $this->decodeRequest($msg);
         do {
