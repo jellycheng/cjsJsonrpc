@@ -25,3 +25,12 @@ $batchAry = array (
 
 echo \json_encode($batchAry);
 echo PHP_EOL;
+
+$call = "user::Jifen\\UserJifenLog.logList";
+$rc = preg_match('/((?:[\w|\-])+)::(.+)/', $call, $matches);
+if($rc) {
+    //匹配
+    var_export($matches);
+    echo PHP_EOL;
+}
+

@@ -2,14 +2,14 @@
 require __DIR__ . '/common.php';
 
 use CjsJsonrpc\Client\Service as ClientService;
-use CjsJsonrpc\Server\Service;
+use CjsJsonrpc\Server\Service as ServerService;
 
 ClientService::importConf(
     array(
         'user' => array(
             'type' => 'local', //远程rpc 还是调用本地仓库代码rpc
             'conf' => array(
-                'service' => Service::create('local',
+                'service' => ServerService::create('local',
                                             function ($module, $method, $params, $id) {
                                                 return 'todo';
                                             })
