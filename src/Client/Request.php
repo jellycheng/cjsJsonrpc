@@ -1,5 +1,6 @@
 <?php
 namespace CjsJsonrpc\Client;
+use CjsJsonrpc\Core\Collection;
 use CjsJsonrpc\Core\RequestBuilder;
 use CjsJsonrpc\Util\ObjectId;
 use CjsJsonrpc\Util\Errorable;
@@ -10,9 +11,10 @@ class Request extends Errorable {
     protected $_module = null;
     protected $_method;
     protected $_config;
+    protected $_collection;
 
     /**
-     * Request constructor.
+     *
      * @param $config = [
      *                  'url'  => 'http://localhost/rpc.php',
      *                  'headers'=>[],
@@ -22,6 +24,7 @@ class Request extends Errorable {
     public function __construct($config)
     {
         $this->_config = $config;
+        $this->_collection = Collection::create();
     }
 
     public static function create($config)
@@ -29,6 +32,10 @@ class Request extends Errorable {
         return new static($config);
     }
 
+    public function getCollection()
+    {
+        return $this->_collection;
+    }
 
     public function module($module)
     {
@@ -36,6 +43,12 @@ class Request extends Errorable {
         return $this;
     }
 
+    /**
+     * 单个请求
+     * @param $method
+     * @param $arguments
+     * @return string
+     */
     public function __call($method, $arguments)
     {
         $this->_method = $method;
@@ -49,7 +62,33 @@ class Request extends Errorable {
         $obj->setId(ObjectId::create()->getId());
         $postJson = $obj->toString();
         //发起curl请求
-        //echo $postJson . PHP_EOL;
+        $content = $this->requestPost($postJson);
+        return $content;
+
+    }
+
+    /**
+     * 批量聚合请求
+     * @param $param
+     */
+    public function batchCall($param)
+    {
+
+    }
+
+
+    protected function requestPost($postJson = null) {
+        if($this->_collection->count() > 1) {
+            //批量聚合
+            $postJson = [];
+
+        } else {
+            //单个
+
+
+        }
+        echo $postJson . PHP_EOL;
+
         $url = \CjsJsonrpc\array_get($this->_config, 'url', '');
         $curlObj = Curl::create($url);
         $option = \CjsJsonrpc\array_get($this->_config, 'option', []);
@@ -62,10 +101,7 @@ class Request extends Errorable {
         }
         $content = $curlObj->post(null, $postJson)->getResponse();
         return $content;
-
     }
-
-
 
 
 
