@@ -30,7 +30,6 @@ class Service extends Errorable {
             if ($rc <= 0) {
                 $errorObj = Response::error(Status::INVALID_REQUEST);
                 $responseObj->setIsError(true)->setError($errorObj);
-
                 break;
             }
             $method = null;
@@ -39,10 +38,8 @@ class Service extends Errorable {
             } else {
                 $errorObj = Response::error(Status::INVALID_REQUEST);
                 $responseObj->setIsError(true)->setError($errorObj);
-
                 break;
             }
-
             $module = null;
             if (isset($match['module']) && !empty($match['module'])) {
                 $module = $match['module'];
@@ -71,30 +68,36 @@ class Service extends Errorable {
         if (isset($data['id'])) {
             $responseObj->setId($data['id']);
         }
-        return $responseObj->response();
+        return $responseObj;
     }
 
 
     public function send($msg, $isExit = true) {
-        //$msg = '{"jsonrpc":"2.0","method":"User\\UserLogin.createLoginLog","id":"58739d15177002b600a05a3e","params":["1234",1,{"op":"add","content":"新增角色"}]}';
+       // $msg = '{"jsonrpc":"2.0","method":"User\\\\UserLogin.createLoginLog","id":"58739d15177002b600a05a3e","params":["1234",1,{"op":"add","content":"新增角色"}]}';
         $this->clearErr();
         $reply = null;
         $req = $this->decodeRequest($msg);
+        //var_export($req);
         if (!$req) {
-            $reply = Response::error(Status::INVALID_REQUEST);
+            $responseObj = Response::create();
+            $errorObj = Response::error(Status::INVALID_REQUEST);
+            $reply = $responseObj->setIsError(true)->setError($errorObj)->toArray();
         } else {
             if (isset($req['method'])) {
                 //单条请求
-                $this->dealOne($req);
+                $responeObj = $this->dealOne($req);
+                $reply = $responeObj->toArray();
             } else {
                 //批量请求
+                $reply = [];
                 foreach($req as $_k=>$_v) {
-                    $this->dealOne($_v);
+                    $responeObj = $this->dealOne($_v);
+                    $reply[] = $responeObj->toArray();
                 }
             }
         }
 
-        $content = $this->encodeResponse($reply);
+        $content = $this->jsonEncode($reply);
         if($isExit) {
           echo $content;exit;
         }
@@ -104,11 +107,9 @@ class Service extends Errorable {
     protected function lookupInternal($module, $method, $params, $id = null)
     {
         $ret = false;
-
         if ($this->lookup) {
             $ret = call_user_func($this->lookup, $module, $method, $params, $id);
         }
-
         return $ret;
     }
 
@@ -117,20 +118,16 @@ class Service extends Errorable {
         return $data;
     }
 
-    protected function encodeResponse($rep)
+    protected function jsonEncode($data)
     {
-        $data = array('jsonrpc' => '2.0');
-        if ($rep instanceof Success) {
-            $data['result'] = $rep->result;
-        } else {
-            $data['error'] = $rep->toArray();
+        $options = 0;
+        if (defined('JSON_UNESCAPED_SLASHES')) {
+            $options |= JSON_UNESCAPED_SLASHES;
         }
-
-        if (property_exists($rep, 'id')) {
-            $data['id'] = $rep->id;
+        if (defined('JSON_UNESCAPED_UNICODE')) {
+            $options |= JSON_UNESCAPED_UNICODE;
         }
-
-        return json_encode($data);
+        return json_encode($data, $options);
     }
 
 }

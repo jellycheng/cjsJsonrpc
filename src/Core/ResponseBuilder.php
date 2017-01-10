@@ -16,12 +16,7 @@ class ResponseBuilder {
     }
 
     public function response() {
-
-        if($this->isError) {
-            $res = $this->buildError();
-        } else {
-            $res = $this->buildSuccess();
-        }
+        $res = $this->toArray();
         $options = 0;
         if (defined('JSON_UNESCAPED_SLASHES')) {
             $options |= JSON_UNESCAPED_SLASHES;
@@ -32,6 +27,14 @@ class ResponseBuilder {
         return json_encode($res, $options);
     }
 
+    public function toArray() {
+        if($this->isError) {
+            $res = $this->buildError();
+        } else {
+            $res = $this->buildSuccess();
+        }
+        return $res;
+    }
 
     protected function buildSuccess() {
         $response = [

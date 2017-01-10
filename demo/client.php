@@ -26,7 +26,7 @@ ClientService::importConf(
             'type' => 'http',
             'protocol' => 'jsonrpc',
             'conf' => array(
-                'url'  => 'http://localhost:9993/rpc.php'
+                'url'  => 'http://localhost:9999/rpc.php'
             )
         ),
 

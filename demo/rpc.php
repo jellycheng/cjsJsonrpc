@@ -5,8 +5,10 @@ use CjsJsonrpc\Server\Service;
 $logFile = __DIR__ . '/rpc.log';
 error_log(file_get_contents('php://input') . PHP_EOL, 3, $logFile);
 
-Service::create(function ($module, $method, $params, $id) {
+Service::create(function($module, $method, $params, $id) use($logFile) {
     $ret = null;
+    error_log(sprintf('module: %s , method: %s ', $module, $method . PHP_EOL), 3, $logFile);
+
     $pieces = explode('\\', $module, 2);
     if (!$pieces || count($pieces) !== 2) {
         return $ret;
@@ -18,10 +20,9 @@ Service::create(function ($module, $method, $params, $id) {
             //是单元测试进来
         } else {//token 合法性判断
 
-
         }
-
     }
+    error_log(sprintf('class: %s , method: %s ', $class, $method . PHP_EOL), 3, $logFile);
     if (class_exists($class)) {
         $callable = array(new $class, $method);
         if (is_callable($callable)) {
