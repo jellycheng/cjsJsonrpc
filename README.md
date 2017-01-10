@@ -5,6 +5,20 @@ cjs jsonrpc json rpc
 ###相关参考网站
 http://www.jsonrpc.org/specification
 
+### Install 
+方式1：
+```
+composer require cjs/jsonrpc
+```
+方式2：
+```
+"require": {
+	...,
+	"cjs/jsonrpc": "dev-master"
+	...,
+}
+```
+
 
 ```
 请求:
