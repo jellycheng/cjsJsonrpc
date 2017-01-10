@@ -3,6 +3,8 @@ namespace CjsJsonrpc\Server;
 use CjsJsonrpc\Core\ResponseBuilder as Response;
 use CjsJsonrpc\Core\Status;
 use CjsJsonrpc\Util\Errorable;
+use CjsJsonrpc\Core\Error;
+use CjsJsonrpc\Core\Success;
 
 class Service extends Errorable {
 
@@ -16,75 +18,87 @@ class Service extends Errorable {
 
     }
 
-
-    public function send($msg, $isExit = true) {
-        $this->clearErr();
-        $reply = null;
-        $req = $this->decodeRequest($msg);
+    protected function dealOne($data){
+        $responseObj = Response::create();
+        $requestId = isset($data['id'])?$data['id']:null;
         do {
-            if (false === $req) {
-                $reply = Response::error(Status::INVALID_REQUEST);
-                break;
-            }
-
             $rc = preg_match(
                 '#(?:(?P<module>\w+)\.)?(?P<method>.+)#',
-                $req->getMethod(),
+                $data['method'],
                 $match
             );
-
             if ($rc <= 0) {
-                $reply = Response::error(Status::INVALID_REQUEST);
-                if (property_exists($req, 'id')) {
+                $errorObj = Response::error(Status::INVALID_REQUEST);
+                $responseObj->setIsError(true)->setError($errorObj);
 
-                }
                 break;
             }
-
             $method = null;
-
             if (isset($match['method']) && !empty($match['method'])) {
                 $method = $match['method'];
             } else {
-                $reply = Response::error(Status::INVALID_REQUEST);
-                if (property_exists($req, 'id')) {
+                $errorObj = Response::error(Status::INVALID_REQUEST);
+                $responseObj->setIsError(true)->setError($errorObj);
 
-                }
                 break;
             }
 
             $module = null;
-
             if (isset($match['module']) && !empty($match['module'])) {
                 $module = $match['module'];
             }
-
-            $params = (array)$req->params;
-            $callable = $this->lookupInternal($module, $method, $params);
+            $params = (array)$data['params'];
+            $callable = $this->lookupInternal($module, $method, $params, $requestId);
             if (is_callable($callable)) {
                 try {
                     $result = call_user_func_array($callable, $params);
-                    $reply = Response::success($result);
+                    $responseObj->setResult($result);
                 } catch (\Exception $e) {
-                    $reply = Response::error(array(
-                                                'code'    => Status::INTERNAL_ERROR,
-                                                'message' => $e->getMessage()
-                                            ));
+                    $errorObj = Response::error(array(
+                                                    'code'=> Status::INTERNAL_ERROR,
+                                                    'message' => $e->getMessage()
+                                                ));
+                    $responseObj->setIsError(true)->setError($errorObj);
                 }
             } elseif ($callable instanceof Response) {
-                $reply = Response::success($callable->reply);
+                $responseObj->setResult($callable->getResult());
             } else {
-                $reply = Response::error(Status::METHOD_NOT_EXISTS);
+                $errorObj = Response::error(Status::METHOD_NOT_EXISTS);
+                $responseObj->setIsError(true)->setError($errorObj);
             }
 
-            if (property_exists($req, 'id')) {
-
-            }
         } while (0);
+        if (isset($data['id'])) {
+            $responseObj->setId($data['id']);
+        }
+        return $responseObj->response();
+    }
 
-        return 'todo';
 
+    public function send($msg, $isExit = true) {
+        //$msg = '{"jsonrpc":"2.0","method":"User\\UserLogin.createLoginLog","id":"58739d15177002b600a05a3e","params":["1234",1,{"op":"add","content":"新增角色"}]}';
+        $this->clearErr();
+        $reply = null;
+        $req = $this->decodeRequest($msg);
+        if (!$req) {
+            $reply = Response::error(Status::INVALID_REQUEST);
+        } else {
+            if (isset($req['method'])) {
+                //单条请求
+                $this->dealOne($req);
+            } else {
+                //批量请求
+                foreach($req as $_k=>$_v) {
+                    $this->dealOne($_v);
+                }
+            }
+        }
 
+        $content = $this->encodeResponse($reply);
+        if($isExit) {
+          echo $content;exit;
+        }
+        return $content;
     }
 
     protected function lookupInternal($module, $method, $params, $id = null)
@@ -101,6 +115,22 @@ class Service extends Errorable {
     protected function decodeRequest($str) {
         $data = is_array($str) ? $str : json_decode($str, true);
         return $data;
+    }
+
+    protected function encodeResponse($rep)
+    {
+        $data = array('jsonrpc' => '2.0');
+        if ($rep instanceof Success) {
+            $data['result'] = $rep->result;
+        } else {
+            $data['error'] = $rep->toArray();
+        }
+
+        if (property_exists($rep, 'id')) {
+            $data['id'] = $rep->id;
+        }
+
+        return json_encode($data);
     }
 
 }

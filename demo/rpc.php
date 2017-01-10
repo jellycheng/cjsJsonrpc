@@ -2,6 +2,8 @@
 require_once __DIR__ . '/common.php';
 use CjsJsonrpc\Server\Service;
 
+$logFile = __DIR__ . '/rpc.log';
+error_log(file_get_contents('php://input') . PHP_EOL, 3, $logFile);
 
 Service::create(function ($module, $method, $params, $id) {
     $ret = null;
@@ -26,6 +28,5 @@ Service::create(function ($module, $method, $params, $id) {
             $ret = $callable;
         }
     }
-
     return $ret;
 })->send(file_get_contents('php://input'));
