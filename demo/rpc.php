@@ -4,7 +4,7 @@ use CjsJsonrpc\Server\Service;
 
 $logFile = __DIR__ . '/rpc.log';
 error_log(file_get_contents('php://input') . PHP_EOL, 3, $logFile);
-
+require_once __DIR__ . '/App/User/Controllers/UserLogin.php';
 Service::create(function($module, $method, $params, $id) use($logFile) {
     $ret = null;
     error_log(sprintf('module: %s , method: %s ', $module, $method . PHP_EOL), 3, $logFile);

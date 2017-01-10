@@ -23,7 +23,8 @@ class Service extends Errorable {
         $requestId = isset($data['id'])?$data['id']:null;
         do {
             $rc = preg_match(
-                '#(?:(?P<module>\w+)\.)?(?P<method>.+)#',
+                //'#(?:(?P<module>\w+)\.)?(?P<method>.+)#',
+                '#(?:(?P<module>[\w|\\\\|:]+)\.)?(?P<method>.+)#',
                 $data['method'],
                 $match
             );
@@ -77,7 +78,6 @@ class Service extends Errorable {
         $this->clearErr();
         $reply = null;
         $req = $this->decodeRequest($msg);
-        //var_export($req);
         if (!$req) {
             $responseObj = Response::create();
             $errorObj = Response::error(Status::INVALID_REQUEST);
