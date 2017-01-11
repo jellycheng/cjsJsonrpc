@@ -27,12 +27,11 @@ function rpcCall($method, $params, &$err = null)
 /**
  * 一次请求批量调用多个api
  * @param array $calls
- * @param null|mixed $err
  * @return mixed
  */
-function batchCall($calls, &$err = null)
+function batchCall($rpcCfgKey, $calls)
 {
-    return Service::batchCall($calls, $err);
+    return Service::batchCall($rpcCfgKey, $calls);
 }
 
 /**
@@ -79,4 +78,27 @@ function array_get($array, $key, $default = null)
 }
 
 
+function json_encode($data, $options=null)
+{
+    if(is_null($options)) {
+        $options = 0;
+        if (defined('JSON_UNESCAPED_SLASHES')) {
+            $options |= JSON_UNESCAPED_SLASHES;
+        }
+        if (defined('JSON_UNESCAPED_UNICODE')) {
+            $options |= JSON_UNESCAPED_UNICODE;
+        }
+    }
+    return \json_encode($data, $options);
+}
+
+
+function debug($msg, $br = PHP_EOL) {
+    $msg = is_array($msg)?var_export($msg, true):$msg;
+    echo $msg . $br;
+}
+
+function with($object) {
+    return $object;
+}
 

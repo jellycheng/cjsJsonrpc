@@ -43,6 +43,10 @@ class Service {
         return $this->request;
     }
 
+    public function getRequest() {
+        return $this->request;
+    }
+
     /**
      * 当个请求
      * @param string $str = user配置key::user\\profile.getinfo
@@ -52,7 +56,7 @@ class Service {
     public static function call($str, $param, &$err=null)
     {
         $ret = false;
-        $rc = preg_match('/((?:[\w|\-])+)::(.+)/', $str, $matches);
+        $rc = preg_match('/((?:[\w|\-\_])+)::(.+)/', $str, $matches);
         if ($rc) {
             $key     = $matches[1];
             $methodTmp = explode('.', $matches[2], 2);//Jifen\\UserJifenLog.logList
@@ -73,12 +77,16 @@ class Service {
 
     /**
      * 聚合批量请求
+     * @param string $rpcCfgKey
      * @param array $param
      * @param null $err
      */
-    public static function batchCall($param, &$err=null)
+    public static function batchCall($rpcCfgKey, $param)
     {
         $ret = null;
+        $clientService = self::get($rpcCfgKey);
+
+        $ret = \CjsJsonrpc\with($clientService->getRequest())->batchCall($param);
 
         return $ret;
     }

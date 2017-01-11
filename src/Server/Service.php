@@ -3,8 +3,6 @@ namespace CjsJsonrpc\Server;
 use CjsJsonrpc\Core\ResponseBuilder as Response;
 use CjsJsonrpc\Core\Status;
 use CjsJsonrpc\Util\Errorable;
-use CjsJsonrpc\Core\Error;
-use CjsJsonrpc\Core\Success;
 
 class Service extends Errorable {
 
@@ -29,7 +27,7 @@ class Service extends Errorable {
                 $match
             );
             if ($rc <= 0) {
-                $errorObj = Response::error(Status::INVALID_REQUEST);
+                $errorObj = Response::error(['code'=>Status::INVALID_REQUEST, 'message'=>Status::desc(Status::INVALID_REQUEST)]);
                 $responseObj->setIsError(true)->setError($errorObj);
                 break;
             }
@@ -37,7 +35,7 @@ class Service extends Errorable {
             if (isset($match['method']) && !empty($match['method'])) {
                 $method = $match['method'];
             } else {
-                $errorObj = Response::error(Status::INVALID_REQUEST);
+                $errorObj = Response::error(['code'=>Status::INVALID_REQUEST, 'message'=>Status::desc(Status::INVALID_REQUEST)]);
                 $responseObj->setIsError(true)->setError($errorObj);
                 break;
             }
@@ -45,23 +43,27 @@ class Service extends Errorable {
             if (isset($match['module']) && !empty($match['module'])) {
                 $module = $match['module'];
             }
-            $params = (array)$data['params'];
+            $params = isset($data['params'])?(array)$data['params']:null;
             $callable = $this->lookupInternal($module, $method, $params, $requestId);
             if (is_callable($callable)) {
                 try {
-                    $result = call_user_func_array($callable, $params);
+                    if(is_array($params)) {
+                        $result = call_user_func_array($callable, $params);
+                    } else {
+                        $result = call_user_func($callable);
+                    }
                     $responseObj->setResult($result);
                 } catch (\Exception $e) {
-                    $errorObj = Response::error(array(
+                    $errorObj = Response::error([
                                                     'code'=> Status::INTERNAL_ERROR,
                                                     'message' => $e->getMessage()
-                                                ));
+                                                ]);
                     $responseObj->setIsError(true)->setError($errorObj);
                 }
             } elseif ($callable instanceof Response) {
                 $responseObj->setResult($callable->getResult());
             } else {
-                $errorObj = Response::error(Status::METHOD_NOT_EXISTS);
+                $errorObj = Response::error(['code'=>Status::METHOD_NOT_EXISTS, 'message'=>Status::desc(Status::METHOD_NOT_EXISTS)]);
                 $responseObj->setIsError(true)->setError($errorObj);
             }
 
@@ -80,7 +82,7 @@ class Service extends Errorable {
         $req = $this->decodeRequest($msg);
         if (!$req) {
             $responseObj = Response::create();
-            $errorObj = Response::error(Status::INVALID_REQUEST);
+            $errorObj = Response::error(['code'=>Status::INVALID_REQUEST, 'message'=>Status::desc(Status::INVALID_REQUEST)]);
             $reply = $responseObj->setIsError(true)->setError($errorObj)->toArray();
         } else {
             if (isset($req['method'])) {
@@ -113,21 +115,15 @@ class Service extends Errorable {
         return $ret;
     }
 
-    protected function decodeRequest($str) {
+    protected function decodeRequest($str)
+    {
         $data = is_array($str) ? $str : json_decode($str, true);
         return $data;
     }
 
     protected function jsonEncode($data)
     {
-        $options = 0;
-        if (defined('JSON_UNESCAPED_SLASHES')) {
-            $options |= JSON_UNESCAPED_SLASHES;
-        }
-        if (defined('JSON_UNESCAPED_UNICODE')) {
-            $options |= JSON_UNESCAPED_UNICODE;
-        }
-        return json_encode($data, $options);
+        return \CjsJsonrpc\json_encode($data, null);
     }
 
 }

@@ -19,7 +19,8 @@ ClientService::importConf(
             'type' => 'http',
             'protocol' => 'jsonrpc',
             'conf' => array(
-                'url'  => 'http://domain.com/rpc.php'
+                'url'  => 'http://domain.com/rpc.php',
+                'debug'=>false,
             )
         ),
         'news'=>array(
@@ -36,6 +37,21 @@ ClientService::importConf(
 
 $userModule = ClientService::get('news')->module('User\\UserLogin');//模块
 $rep = $userModule->createLoginLog("1234", 1, ['op'=>'add', 'content'=>'新增角色']);  //记录用户登录日志
+if (!$userModule->errno()) {//没有发生错误
+    echo 'rep : ';
+    if (is_array($rep)) {
+        $str = var_export($rep, true) . PHP_EOL;
+    } else {
+        $str = $rep . PHP_EOL;
+    }
+    echo isWin() ? mb_convert_encoding($str, 'gbk', 'utf-8') : $str;
+} else {//rpc发生错误了
+    echo 'errno  : ', $userModule->errno(), "\n";
+    echo 'errstr : ', $userModule->errstr(), "\n";
+}
+
+$userModule = ClientService::get('news')->module('User\\UserLogin');//模块
+$rep = $userModule->noFun("1234");
 if (!$userModule->errno()) {//没有发生错误
     echo 'rep : ';
     if (is_array($rep)) {

@@ -9,6 +9,7 @@ class Status
     const METHOD_NOT_EXISTS  = -32601;
     const INVALID_PARAMS     = -32602;
     const INTERNAL_ERROR     = -32603;
+    const JSON_FORMART_ERROR = -32000;   //to -32099
 
     public static function desc($code)
     {
@@ -32,6 +33,9 @@ class Status
                 break;
             case self::INTERNAL_ERROR:
                 $ret = 'internal error';
+                break;
+            case self::JSON_FORMART_ERROR:
+                $ret = "server响应的jsonrpc格式错误";
                 break;
         }
 

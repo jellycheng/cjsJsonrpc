@@ -8,8 +8,8 @@ class Success {
     public function __construct()
     {
         $this->rpcSuccess = new \stdClass;
-        $this->result = '';
-
+        $this->rpcSuccess->result = '';
+        $this->rpcSuccess->id = null;
     }
 
     public static function create() {
@@ -27,6 +27,11 @@ class Success {
 
     public function setResult($data) {
         $this->rpcSuccess->result = $data;
+        return $this;
+    }
+
+    public function setId($id) {
+        $this->rpcSuccess->id = $id;
         return $this;
     }
 
